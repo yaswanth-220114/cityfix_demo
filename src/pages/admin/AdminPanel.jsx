@@ -1,0 +1,124 @@
+import React, { useState } from 'react';
+import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { MapPin, LayoutDashboard, Users, List, FileText, Activity, LogOut, User, Menu, Shield } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import NotificationBell from '../../components/NotificationBell';
+import ChatBot from '../../components/ChatBot';
+import AdminOverview from './AdminOverview';
+import OfficerManagement from './OfficerManagement';
+import ComplaintOversight from './ComplaintOversight';
+import Analytics from './Analytics';
+import AuditLog from './AuditLog';
+import toast from 'react-hot-toast';
+
+const navItems = [
+    { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
+    { to: '/admin/complaints', icon: List, label: 'All Complaints' },
+    { to: '/admin/officers', icon: Users, label: 'Officers' },
+    { to: '/admin/analytics', icon: Activity, label: 'Analytics' },
+    { to: '/admin/audit', icon: FileText, label: 'Audit Log' },
+];
+
+export default function AdminPanel() {
+    const { user, userData, logout } = useAuth();
+    const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const handleLogout = async () => {
+        await logout();
+        toast.success('Logged out');
+        navigate('/');
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50 flex">
+            {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+
+            <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-[#0f2346] flex flex-col transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                }`}>
+                <div className="px-6 py-6 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-[#f97316] rounded-xl flex items-center justify-center">
+                            <Shield className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <span className="text-white font-bold text-xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                                City<span className="text-[#f97316]">Fix</span>
+                            </span>
+                            <p className="text-white/40 text-xs">Admin Panel</p>
+                        </div>
+                    </div>
+                    <div className="mt-4 flex items-center gap-3">
+                        {user?.photoURL ? (
+                            <img src={user.photoURL} className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" alt="avatar" />
+                        ) : (
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                <User className="w-4 h-4 text-white" />
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <p className="text-white/90 text-sm font-medium truncate">{userData?.name || user?.displayName}</p>
+                            <p className="text-white/40 text-xs">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav className="flex-1 px-3 py-6 space-y-1">
+                    {navItems.map(item => (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.end}
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-[#f97316]/20 text-[#f97316] border-r-2 border-[#f97316]' : 'text-white/60 hover:text-white hover:bg-white/10'
+                                }`
+                            }
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <item.icon className="w-5 h-5" />
+                            {item.label}
+                        </NavLink>
+                    ))}
+                </nav>
+
+                <div className="px-3 pb-6">
+                    <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-white/40 hover:text-white hover:bg-white/10 w-full transition-all">
+                        <LogOut className="w-5 h-5" />
+                        Logout
+                    </button>
+                </div>
+            </aside>
+
+            <div className="flex-1 flex flex-col min-w-0">
+                <header className="bg-[#0f2346] px-4 py-4 flex items-center justify-between lg:hidden sticky top-0 z-10">
+                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white"><Menu className="w-6 h-6" /></button>
+                    <span className="text-white font-bold">City<span className="text-[#f97316]">Fix</span> Admin</span>
+                    <NotificationBell />
+                </header>
+
+                <header className="hidden lg:flex bg-white border-b border-slate-100 px-8 py-4 items-center justify-between sticky top-0 z-10">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-800">Admin Panel</h2>
+                        <p className="text-slate-500 text-sm">Full system oversight and management</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="px-3 py-1.5 bg-[#f97316]/10 text-[#f97316] text-xs font-bold rounded-full">Administrator</div>
+                        <NotificationBell />
+                    </div>
+                </header>
+
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+                    <Routes>
+                        <Route path="/" element={<AdminOverview />} />
+                        <Route path="/complaints" element={<ComplaintOversight />} />
+                        <Route path="/officers" element={<OfficerManagement />} />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/audit" element={<AuditLog />} />
+                    </Routes>
+                </main>
+            </div>
+
+            <ChatBot />
+        </div>
+    );
+}
