@@ -157,8 +157,8 @@ export default function LoginPage() {
                                     key={t.id}
                                     onClick={() => { setTab(t.id); setError(''); }}
                                     className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t.id
-                                            ? 'bg-white text-[#1a3c6e] shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-700'
+                                        ? 'bg-white text-[#1a3c6e] shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
                                         }`}
                                 >
                                     {t.label}
