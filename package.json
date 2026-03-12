@@ -1,42 +1,17 @@
 {
-  "name": "prompt_cityfix",
+  "name": "cityfix",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "CityFix - AI-powered civic complaint management platform",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && node server.js",
+    "dev": "start npm run dev:backend && npm run dev:frontend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "install:all": "npm run install:frontend && npm run install:backend"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
-    "@react-oauth/google": "^0.13.4",
-    "axios": "^1.13.6",
-    "emailjs-com": "^3.2.0",
-    "firebase": "^12.10.0",
-    "jwt-decode": "^4.0.0",
-    "leaflet": "^1.9.4",
-    "lucide-react": "^0.577.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-dropzone": "^15.0.0",
-    "react-hot-toast": "^2.6.0",
-    "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.13.1",
-    "recharts": "^3.7.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/vite": "^4.2.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "tailwindcss": "^4.2.1",
-    "vite": "^7.3.1"
+    "jwt-decode": "^4.0.0"
   }
 }

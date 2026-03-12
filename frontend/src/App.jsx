@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -9,7 +9,7 @@ import { GOOGLE_CLIENT_ID } from './config/keys';
 // Lazy load pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
-const CitizenPortal = lazy(() => import('./pages/citizen/CitizenPortal'));
+const CitizenDashboard = lazy(() => import('./pages/citizen/CitizenDashboard'));
 const OfficerDashboard = lazy(() => import('./pages/officer/OfficerDashboard'));
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
 
@@ -59,7 +59,7 @@ function AppRoutes() {
 
         <Route path="/citizen/*" element={
           <ProtectedRoute allowedRoles={['citizen']}>
-            <CitizenPortal />
+            <CitizenDashboard />
           </ProtectedRoute>
         } />
 
@@ -84,28 +84,26 @@ function AppRoutes() {
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#1a3c6e',
-                color: '#fff',
-                borderRadius: '12px',
-                padding: '12px 16px',
-                fontSize: '14px',
-                fontWeight: '500',
-                boxShadow: '0 10px 30px rgba(26,60,110,0.3)',
-              },
-              success: { iconTheme: { primary: '#22c55e', secondary: '#fff' } },
-              error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-            }}
-          />
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#1a3c6e',
+              color: '#fff',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 10px 30px rgba(26,60,110,0.3)',
+            },
+            success: { iconTheme: { primary: '#22c55e', secondary: '#fff' } },
+            error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+          }}
+        />
+      </AuthProvider>
     </GoogleOAuthProvider>
   );
 }

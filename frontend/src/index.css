@@ -2,17 +2,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1a3c6e;
-  --color-primary-950: #0f2346;
+  --color-primary-50: #e0f2fe;
+  --color-primary-100: #bae6fd;
+  --color-primary-200: #7dd3fc;
+  --color-primary-300: #38bdf8;
+  --color-primary-400: #0ea5e9;
+  --color-primary-500: #0284c7;
+  --color-primary-600: #0369a1;
+  --color-primary-700: #075985;
+  --color-primary-800: #0c4a6e;
+  --color-primary-900: #083351;
+  --color-primary-950: #052540;
 
   --color-accent-50: #fff7ed;
   --color-accent-100: #ffedd5;
@@ -39,8 +39,8 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: #f0f9ff;
+  color: #0c4a6e;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -59,16 +59,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #e0f2fe;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #7dd3fc;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #0ea5e9;
 }
 
 /* Animations */
@@ -217,7 +217,7 @@ body {
 
 /* Skeleton loader */
 .skeleton {
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background: linear-gradient(90deg, #bae6fd 25%, #e0f2fe 50%, #bae6fd 75%);
   background-size: 1000px 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
@@ -228,21 +228,21 @@ body {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .glass-dark {
-  background: rgba(26, 60, 110, 0.85);
+  background: rgba(2, 132, 199, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Status badges */
 .badge-submitted {
-  background-color: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
 }
 
 .badge-assigned {
@@ -271,7 +271,7 @@ body {
 
 /* Gradient hero */
 .hero-gradient {
-  background: linear-gradient(135deg, #0f2346 0%, #1a3c6e 40%, #1e5a9e 70%, #1a3c6e 100%);
+  background: linear-gradient(135deg, #052540 0%, #0c4a6e 40%, #0369a1 70%, #0c4a6e 100%);
 }
 
 /* Card hover effects */
@@ -281,7 +281,7 @@ body {
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(26, 60, 110, 0.12);
+  box-shadow: 0 20px 40px rgba(2, 132, 199, 0.12);
 }
 
 /* Gradient button */
@@ -301,7 +301,7 @@ body {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #1a3c6e, #1e5a9e);
+  background: linear-gradient(135deg, #0369a1, #0284c7);
   color: white;
   border: none;
   cursor: pointer;
@@ -310,20 +310,22 @@ body {
 }
 
 .btn-secondary:hover {
-  box-shadow: 0 8px 20px rgba(26, 60, 110, 0.3);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
   transform: translateY(-1px);
 }
 
 /* Input focus styles */
 .input-field {
   transition: all 0.2s ease;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #bae6fd;
   outline: none;
+  background-color: #f0f9ff;
 }
 
 .input-field:focus {
-  border-color: #1a3c6e;
-  box-shadow: 0 0 0 3px rgba(26, 60, 110, 0.1);
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+  background-color: #ffffff;
 }
 
 /* Notification dot */
@@ -338,7 +340,7 @@ body {
 /* Timeline */
 .timeline-line {
   width: 2px;
-  background: linear-gradient(to bottom, #1a3c6e, #e2e8f0);
+  background: linear-gradient(to bottom, #0284c7, #bae6fd);
 }
 
 /* Map container */
@@ -347,7 +349,7 @@ body {
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #bae6fd;
 }
 
 /* Chatbot */
