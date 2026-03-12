@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Upload, X, Wand2, AlertTriangle, CheckCircle, Loader2, Camera, Navigation } from 'lucide-react';
+import { MapPin, X, AlertTriangle, CheckCircle, Loader2, Camera, Navigation, FileText, Tag, MapPinned, Image } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveComplaint, createNotification } from '../../utils/complaintStore';
-import { categorizeComplaint, scorePriority, analyzeImage } from '../../services/gemini';
+import { scorePriority, analyzeImage } from '../../services/gemini';
 import { sendComplaintConfirmation } from '../../services/emailjs';
 import { LocationPickerMap } from '../../components/maps/MapComponents';
 import toast from 'react-hot-toast';
@@ -15,10 +15,17 @@ const CATEGORIES = [
 ];
 
 const SEVERITIES = [
-    { value: 'low', label: 'Low', color: 'text-green-600 bg-green-50 border-green-200', desc: 'Minor inconvenience' },
-    { value: 'medium', label: 'Medium', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', desc: 'Needs attention' },
-    { value: 'high', label: 'High', color: 'text-orange-600 bg-orange-50 border-orange-200', desc: 'Urgent issue' },
-    { value: 'critical', label: 'Critical', color: 'text-red-600 bg-red-50 border-red-200', desc: 'Emergency' },
+    { value: 'low', label: 'Low', icon: '🟢', color: 'text-green-700 bg-green-50 border-green-300', desc: 'Minor inconvenience' },
+    { value: 'medium', label: 'Medium', icon: '🟡', color: 'text-yellow-700 bg-yellow-50 border-yellow-300', desc: 'Needs attention' },
+    { value: 'high', label: 'High', icon: '🟠', color: 'text-orange-700 bg-orange-50 border-orange-300', desc: 'Urgent issue' },
+    { value: 'critical', label: 'Critical', icon: '🔴', color: 'text-red-700 bg-red-50 border-red-300', desc: 'Emergency' },
+];
+
+const STEPS = [
+    { num: 1, label: 'Details', icon: FileText },
+    { num: 2, label: 'Category', icon: Tag },
+    { num: 3, label: 'Location', icon: MapPinned },
+    { num: 4, label: 'Evidence', icon: Image },
 ];
 
 export default function SubmitComplaint() {
@@ -35,7 +42,6 @@ export default function SubmitComplaint() {
     });
     const [files, setFiles] = useState([]);
     const [previews, setPreviews] = useState([]);
-    const [aiLoading, setAiLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [gpsLoading, setGpsLoading] = useState(false);
     const [duplicate, setDuplicate] = useState(null);
@@ -44,27 +50,6 @@ export default function SubmitComplaint() {
     const fileInputRef = useRef(null);
 
     const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
-
-    const handleAICategorize = async () => {
-        if (!form.title && !form.description) {
-            toast.error('Please add a title or description first');
-            return;
-        }
-        setAiLoading(true);
-        try {
-            const [category, score] = await Promise.all([
-                categorizeComplaint(form.title, form.description),
-                scorePriority(form.title, form.description, form.category, form.severity),
-            ]);
-            setForm(prev => ({ ...prev, category }));
-            setAiScore(score);
-            toast.success('AI analysis complete!');
-        } catch (err) {
-            toast.error('AI analysis failed. Ensure Gemini API key is set.');
-        } finally {
-            setAiLoading(false);
-        }
-    };
 
     const handleGPS = () => {
         if (!navigator.geolocation) {
@@ -208,12 +193,34 @@ export default function SubmitComplaint() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
+            {/* Page Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                    Submit Complaint
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-100 text-sky-700 rounded-full text-xs font-semibold mb-3">
+                    <MapPin className="w-3.5 h-3.5" />
+                    CityFix Complaint Portal
+                </div>
+                <h1 className="text-3xl font-bold text-sky-900 mb-2" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                    Submit a Complaint
                 </h1>
-                <p className="text-slate-500">Report an issue in your area. Our AI will help categorize and prioritize it.</p>
+                <p className="text-sky-600">Report an issue in your area and help us keep the city running smoothly.</p>
+            </div>
+
+            {/* Step Indicator */}
+            <div className="flex items-center gap-0 mb-8 bg-white rounded-2xl p-4 shadow-sm border border-sky-100">
+                {STEPS.map((step, i) => (
+                    <React.Fragment key={step.num}>
+                        <div className="flex flex-col items-center flex-1">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center mb-1.5 transition-all ${i === 0 ? 'bg-[#0284c7] text-white shadow-md shadow-sky-200' : 'bg-sky-50 text-sky-400 border border-sky-200'}`}>
+                                <step.icon className="w-4 h-4" />
+                            </div>
+                            <span className={`text-[10px] font-semibold ${i === 0 ? 'text-sky-700' : 'text-sky-400'}`}>{step.label}</span>
+                        </div>
+                        {i < STEPS.length - 1 && (
+                            <div className="flex-1 h-px bg-sky-100 mb-5 mx-1" />
+                        )}
+                    </React.Fragment>
+                ))}
             </div>
 
             {duplicate && (
@@ -232,18 +239,20 @@ export default function SubmitComplaint() {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Title & Description */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-[#1a3c6e] rounded-full text-white text-xs flex items-center justify-center font-bold">1</span>
-                        Complaint Details
-                    </h2>
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-                    <div className="space-y-4">
+                {/* ── STEP 1: Complaint Details ── */}
+                <div className="bg-white rounded-2xl shadow-sm border border-sky-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-sky-500 to-sky-400 px-6 py-4 flex items-center gap-3">
+                        <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="font-bold text-white text-sm tracking-wide uppercase">1 · Complaint Details</h2>
+                    </div>
+                    <div className="p-6 space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Title <span className="text-red-500">*</span>
+                            <label className="block text-sm font-semibold text-sky-800 mb-2">
+                                Title <span className="text-orange-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -251,13 +260,12 @@ export default function SubmitComplaint() {
                                 value={form.title}
                                 onChange={e => updateForm('title', e.target.value)}
                                 required
-                                className="input-field w-full px-4 py-3 rounded-xl bg-slate-50 text-slate-800 placeholder-slate-400"
+                                className="input-field w-full px-4 py-3 rounded-xl text-sky-900 placeholder-sky-300 text-sm"
                             />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Description <span className="text-red-500">*</span>
+                            <label className="block text-sm font-semibold text-sky-800 mb-2">
+                                Description <span className="text-orange-500">*</span>
                             </label>
                             <textarea
                                 placeholder="Provide detailed information about the issue, its impact, and how long it has been present..."
@@ -265,188 +273,178 @@ export default function SubmitComplaint() {
                                 onChange={e => updateForm('description', e.target.value)}
                                 required
                                 rows={4}
-                                className="input-field w-full px-4 py-3 rounded-xl bg-slate-50 text-slate-800 placeholder-slate-400 resize-none"
+                                className="input-field w-full px-4 py-3 rounded-xl text-sky-900 placeholder-sky-300 resize-none text-sm"
+                            />
+                            <p className="text-xs text-sky-400 mt-1.5">Be as specific as possible to help officers respond faster.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── STEP 2: Category & Severity ── */}
+                <div className="bg-white rounded-2xl shadow-sm border border-sky-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-4 flex items-center gap-3">
+                        <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                            <Tag className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="font-bold text-white text-sm tracking-wide uppercase">2 · Category & Severity</h2>
+                    </div>
+                    <div className="p-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-sky-800 mb-2">
+                                    Category <span className="text-orange-500">*</span>
+                                </label>
+                                <select
+                                    value={form.category}
+                                    onChange={e => updateForm('category', e.target.value)}
+                                    required
+                                    className="input-field w-full px-4 py-3 rounded-xl text-sky-900 text-sm"
+                                >
+                                    <option value="">Select a category...</option>
+                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-sky-800 mb-2">
+                                    Severity <span className="text-orange-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {SEVERITIES.map(s => (
+                                        <button
+                                            key={s.value}
+                                            type="button"
+                                            onClick={() => updateForm('severity', s.value)}
+                                            className={`px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all flex flex-col items-center gap-1 ${form.severity === s.value
+                                                ? s.color + ' border-current shadow-sm'
+                                                : 'bg-sky-50 text-sky-500 border-sky-100 hover:border-sky-200'
+                                                }`}
+                                        >
+                                            <span className="text-base">{s.icon}</span>
+                                            <div className="font-bold">{s.label}</div>
+                                            <div className="text-[10px] font-normal opacity-70">{s.desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── STEP 3: Location ── */}
+                <div className="bg-white rounded-2xl shadow-sm border border-sky-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-sky-700 to-sky-600 px-6 py-4 flex items-center gap-3">
+                        <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                            <MapPinned className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="font-bold text-white text-sm tracking-wide uppercase">3 · Location</h2>
+                    </div>
+                    <div className="p-6">
+                        <div className="flex flex-wrap gap-3 mb-4">
+                            <button
+                                type="button"
+                                onClick={handleGPS}
+                                disabled={gpsLoading}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0284c7] text-white text-sm font-semibold hover:bg-[#0369a1] transition-colors disabled:opacity-50 shadow-sm shadow-sky-200"
+                            >
+                                {gpsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
+                                {gpsLoading ? 'Detecting...' : 'Use My Location'}
+                            </button>
+                            <span className="text-sky-400 text-sm self-center italic">or click on the map below</span>
+                        </div>
+
+                        {form.address && (
+                            <div className="flex items-center gap-2 mb-4 text-sm text-sky-700 bg-sky-50 px-4 py-2.5 rounded-xl border border-sky-200">
+                                <MapPin className="w-4 h-4 flex-shrink-0 text-[#0284c7]" />
+                                <span className="truncate font-medium">{form.address}</span>
+                            </div>
+                        )}
+
+                        <LocationPickerMap
+                            location={form.location}
+                            onLocationSelect={(loc) => updateForm('location', loc)}
+                            height="280px"
+                        />
+                        {!form.location && (
+                            <p className="text-xs text-sky-400 mt-2 text-center">📍 Click anywhere on the map to pin the issue location</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── STEP 4: Evidence ── */}
+                <div className="bg-white rounded-2xl shadow-sm border border-sky-100 overflow-hidden">
+                    <div className="bg-gradient-to-r from-slate-600 to-slate-500 px-6 py-4 flex items-center gap-3">
+                        <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                            <Image className="w-4 h-4 text-white" />
+                        </div>
+                        <h2 className="font-bold text-white text-sm tracking-wide uppercase">4 · Evidence <span className="text-white/60 font-normal normal-case">(Optional)</span></h2>
+                    </div>
+                    <div className="p-6">
+                        <div
+                            onDrop={handleDrop}
+                            onDragOver={e => e.preventDefault()}
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-2 border-dashed border-sky-200 rounded-2xl p-10 text-center hover:border-[#0284c7] hover:bg-sky-50/60 transition-all cursor-pointer group"
+                        >
+                            <div className="w-14 h-14 bg-sky-50 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:bg-sky-100 transition-colors">
+                                <Camera className="w-7 h-7 text-sky-300 group-hover:text-[#0284c7] transition-colors" />
+                            </div>
+                            <p className="text-sm font-semibold text-sky-700">Drop photos/videos here</p>
+                            <p className="text-xs text-sky-400 mt-1">or <span className="text-[#0284c7] underline underline-offset-2">click to browse</span> — JPG, PNG, MP4 up to 10MB</p>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*,video/*"
+                                onChange={handleFileChange}
+                                className="hidden"
                             />
                         </div>
 
-                        {/* AI Categorize Button */}
-                        <button
-                            type="button"
-                            onClick={handleAICategorize}
-                            disabled={aiLoading || (!form.title && !form.description)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50"
-                        >
-                            {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                            {aiLoading ? 'Analyzing...' : 'Auto-Categorize with AI'}
-                        </button>
+                        {previews.length > 0 && (
+                            <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                {previews.map((p, i) => (
+                                    <div key={i} className="relative group">
+                                        {p.type === 'image' ? (
+                                            <img src={p.url} alt={p.name} className="w-full h-24 object-cover rounded-xl border border-sky-100" />
+                                        ) : (
+                                            <div className="w-full h-24 bg-sky-50 rounded-xl flex flex-col items-center justify-center border border-sky-100">
+                                                <span className="text-2xl">🎥</span>
+                                                <span className="text-[10px] text-sky-400 mt-1">Video</span>
+                                            </div>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFile(i)}
+                                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                        {aiScore !== null && (
-                            <div className="flex items-center gap-3 bg-purple-50 rounded-xl p-3 border border-purple-100">
-                                <div className="text-2xl font-bold text-purple-700">{aiScore}/10</div>
-                                <div>
-                                    <p className="font-medium text-purple-800 text-sm">AI Priority Score</p>
-                                    <p className="text-purple-600 text-xs">
-                                        {aiScore >= 8 ? '🔴 Critical - Needs immediate attention' :
-                                            aiScore >= 6 ? '🟠 High priority' :
-                                                aiScore >= 4 ? '🟡 Medium priority' : '🟢 Low priority'}
-                                    </p>
-                                </div>
+                        {imageAnalysis && (
+                            <div className="mt-4 bg-sky-50 rounded-xl p-4 border border-sky-200">
+                                <p className="text-xs font-semibold text-sky-700 mb-1">🤖 AI Image Analysis:</p>
+                                <p className="text-sky-800 text-sm">{imageAnalysis}</p>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Category & Severity */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-[#1a3c6e] rounded-full text-white text-xs flex items-center justify-center font-bold">2</span>
-                        Category & Severity
-                    </h2>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Category <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={form.category}
-                                onChange={e => updateForm('category', e.target.value)}
-                                required
-                                className="input-field w-full px-4 py-3 rounded-xl bg-slate-50 text-slate-800"
-                            >
-                                <option value="">Select a category...</option>
-                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Severity <span className="text-red-500">*</span>
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {SEVERITIES.map(s => (
-                                    <button
-                                        key={s.value}
-                                        type="button"
-                                        onClick={() => updateForm('severity', s.value)}
-                                        className={`px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${form.severity === s.value
-                                            ? s.color + ' border-current'
-                                            : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300'
-                                            }`}
-                                    >
-                                        <div>{s.label}</div>
-                                        <div className="text-[10px] font-normal opacity-70">{s.desc}</div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Location */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-[#1a3c6e] rounded-full text-white text-xs flex items-center justify-center font-bold">3</span>
-                        Location
-                    </h2>
-
-                    <div className="flex flex-wrap gap-3 mb-4">
-                        <button
-                            type="button"
-                            onClick={handleGPS}
-                            disabled={gpsLoading}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1a3c6e] text-white text-sm font-medium hover:bg-[#1e5a9e] transition-colors disabled:opacity-50"
-                        >
-                            {gpsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
-                            {gpsLoading ? 'Detecting...' : 'Use My Location'}
-                        </button>
-                        <span className="text-slate-400 text-sm self-center">or click on the map below</span>
-                    </div>
-
-                    {form.address && (
-                        <div className="flex items-center gap-2 mb-3 text-sm text-[#1a3c6e] bg-blue-50 px-3 py-2 rounded-lg">
-                            <MapPin className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{form.address}</span>
-                        </div>
-                    )}
-
-                    <LocationPickerMap
-                        location={form.location}
-                        onLocationSelect={(loc) => updateForm('location', loc)}
-                        height="280px"
-                    />
-                    {!form.location && (
-                        <p className="text-xs text-slate-400 mt-2 text-center">Click anywhere on the map to pin the location</p>
-                    )}
-                </div>
-
-                {/* Evidence Upload */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <h2 className="font-semibold text-slate-800 mb-5 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-[#1a3c6e] rounded-full text-white text-xs flex items-center justify-center font-bold">4</span>
-                        Evidence (Optional)
-                    </h2>
-
-                    <div
-                        onDrop={handleDrop}
-                        onDragOver={e => e.preventDefault()}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-[#1a3c6e] hover:bg-blue-50/30 transition-all cursor-pointer group"
-                    >
-                        <Camera className="w-10 h-10 text-slate-300 group-hover:text-[#1a3c6e] mx-auto mb-3 transition-colors" />
-                        <p className="text-sm font-medium text-slate-600">Drop photos/videos or click to upload</p>
-                        <p className="text-xs text-slate-400 mt-1">JPG, PNG, MP4 up to 10MB each</p>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept="image/*,video/*"
-                            onChange={handleFileChange}
-                            className="hidden"
-                        />
-                    </div>
-
-                    {previews.length > 0 && (
-                        <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3">
-                            {previews.map((p, i) => (
-                                <div key={i} className="relative group">
-                                    {p.type === 'image' ? (
-                                        <img src={p.url} alt={p.name} className="w-full h-24 object-cover rounded-xl" />
-                                    ) : (
-                                        <div className="w-full h-24 bg-slate-100 rounded-xl flex items-center justify-center">
-                                            <span className="text-2xl">🎥</span>
-                                        </div>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => removeFile(i)}
-                                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {imageAnalysis && (
-                        <div className="mt-4 bg-purple-50 rounded-xl p-4 border border-purple-100">
-                            <p className="text-xs font-semibold text-purple-700 mb-1">🤖 AI Image Analysis:</p>
-                            <p className="text-purple-800 text-sm">{imageAnalysis}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Submit */}
+                {/* ── Submit Button ── */}
                 <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full btn-primary py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2"
+                    className="w-full py-4 rounded-2xl text-base font-bold flex items-center justify-center gap-3 transition-all shadow-lg shadow-orange-200 hover:shadow-xl hover:shadow-orange-300 hover:-translate-y-0.5"
+                    style={{ background: submitting ? '#cbd5e1' : 'linear-gradient(135deg, #f97316, #ea580c)', color: 'white' }}
                 >
                     {submitting ? (
                         <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            Submitting...
+                            Submitting your complaint...
                         </>
                     ) : (
                         <>
@@ -455,6 +453,7 @@ export default function SubmitComplaint() {
                         </>
                     )}
                 </button>
+                <p className="text-center text-xs text-sky-400 pb-4">Your complaint will be reviewed and assigned to the relevant department.</p>
             </form>
         </div>
     );

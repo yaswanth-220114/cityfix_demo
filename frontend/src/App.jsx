@@ -9,7 +9,7 @@ import { GOOGLE_CLIENT_ID } from './config/keys';
 // Lazy load pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
-const CitizenPortal = lazy(() => import('./pages/citizen/CitizenPortal'));
+const CitizenDashboard = lazy(() => import('./pages/citizen/CitizenDashboard'));
 const OfficerDashboard = lazy(() => import('./pages/officer/OfficerDashboard'));
 const AdminPanel = lazy(() => import('./pages/admin/AdminPanel'));
 
@@ -59,7 +59,7 @@ function AppRoutes() {
 
         <Route path="/citizen/*" element={
           <ProtectedRoute allowedRoles={['citizen']}>
-            <CitizenPortal />
+            <CitizenDashboard />
           </ProtectedRoute>
         } />
 
