@@ -1,28 +1,11 @@
-import axios from 'axios';
+// src/services/api.js
+// DEMO MODE — no backend needed
 
-const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
-});
-
-// Auto attach JWT token to every request
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('cityfix_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
-// Handle expired token globally
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            localStorage.clear();
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
+const api = {
+    get: async (url) => ({ data: {} }),
+    post: async (url, data) => ({ data: {} }),
+    put: async (url, data) => ({ data: {} }),
+    delete: async (url) => ({ data: {} }),
+};
 
 export default api;
